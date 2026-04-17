@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AR Leads Premium</title>
     <script src="https://tailwindcss.com"></script>
-    <script src="https://cloudflare.com"></script>
-    <script src="https://cloudflare.com"></script>
-    <script src="https://cloudflare.com"></script>
+    <script src="https://unpkg.com"></script>
+    <script src="https://unpkg.com"></script>
+    <script src="https://unpkg.com"></script>
     <style>
         @import url('https://googleapis.com');
         body { font-family: 'Montserrat', sans-serif; background-color: #050505; color: #fff; }
@@ -22,11 +22,11 @@
         const { useState, useEffect } = React;
         function App() {
             const [leads, setLeads] = useState(() => {
-                const saved = localStorage.getItem("ar_leads_v10");
+                const saved = localStorage.getItem("ar_leads_final");
                 return saved ? JSON.parse(saved) : [];
             });
             const [form, setForm] = useState({ nome: "", telefone: "", interesse: "" });
-            useEffect(() => { localStorage.setItem("ar_leads_v10", JSON.stringify(leads)); }, [leads]);
+            useEffect(() => { localStorage.setItem("ar_leads_final", JSON.stringify(leads)); }, [leads]);
             const salvar = (e) => {
                 e.preventDefault();
                 if(!form.nome || !form.telefone) return alert("Preencha os campos!");
@@ -35,21 +35,21 @@
             };
             return (
                 <div className="min-h-screen p-4 max-w-xl mx-auto flex flex-col items-center">
-                    <div className="w-20 h-20 border-2 border-[#BF953F] flex items-center justify-center rounded-full my-8 shadow-lg bg-[#111]">
+                    <div className="w-20 h-20 border-2 border-[#BF953F] flex items-center justify-center rounded-full my-8 bg-[#111]">
                         <span className="text-2xl font-black gold-text italic">AR</span>
                     </div>
-                    <h1 className="text-2xl font-bold uppercase gold-text italic mb-10 text-center text-white">Anderson Ricardo</h1>
+                    <h1 className="text-2xl font-bold uppercase gold-text italic mb-10 text-center">Anderson Ricardo</h1>
                     <form onSubmit={salvar} className="glass p-6 rounded-3xl w-full space-y-4 border border-white/5 shadow-2xl">
                         <input type="text" placeholder="Nome do Cliente" value={form.nome} onChange={e => setForm({...form, nome: e.target.value})} className="w-full p-4 bg-white/5 border border-white/10 rounded-xl outline-none text-white text-sm" />
                         <input type="tel" placeholder="Telefone com DDD" value={form.telefone} onChange={e => setForm({...form, telefone: e.target.value})} className="w-full p-4 bg-white/5 border-l-4 border-[#BF953F] border-white/10 rounded-xl outline-none text-white text-sm font-bold" />
                         <input type="text" placeholder="Interesse / Bairro" value={form.interesse} onChange={e => setForm({...form, interesse: e.target.value})} className="w-full p-4 bg-white/5 border border-white/10 rounded-xl outline-none text-white text-sm" />
-                        <button className="w-full py-5 gold-gradient text-black font-black uppercase text-[11px] rounded-xl tracking-widest active:scale-95 transition-all">Salvar Lead Pro</button>
+                        <button className="w-full py-5 gold-gradient text-black font-black uppercase text-[11px] rounded-xl tracking-widest transition-all">Salvar Lead Pro</button>
                     </form>
-                    <div className="w-full mt-10 space-y-6 text-white">
+                    <div className="w-full mt-10 space-y-6">
                         {leads.map(l => (
-                            <div key={l.id} className="glass p-6 rounded-[2rem] border border-white/5 shadow-2xl">
+                            <div key={l.id} className="glass p-6 rounded-[2rem] border border-white/5">
                                 <h4 className="font-bold text-lg">{l.nome}</h4>
-                                <p className="text-[10px] text-[#BF953F] font-bold uppercase tracking-widest mb-4 italic">{l.interesse}</p>
+                                <p className="text-[10px] text-[#BF953F] font-bold uppercase mb-4 tracking-widest">{l.interesse}</p>
                                 <button onClick={() => window.open(`https://wa.me{l.telefone.replace(/\D/g, "")}`, "_blank")} className="w-full bg-green-600 py-4 rounded-2xl text-[10px] font-black uppercase text-black">WhatsApp</button>
                             </div>
                         ))}
