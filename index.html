@@ -3,16 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AR Leads Premium | Anderson Ricardo</title>
-    
-    <!-- Importação do Tailwind CSS para o design -->
+    <title>AR Leads Premium</title>
     <script src="https://tailwindcss.com"></script>
-    
-    <!-- Importação das bibliotecas do React e Babel (Cérebro do App) -->
-    <script src="https://unpkg.com"></script>
-    <script src="https://unpkg.com"></script>
-    <script src="https://unpkg.com"></script>
-    
+    <script src="https://cloudflare.com"></script>
+    <script src="https://cloudflare.com"></script>
+    <script src="https://cloudflare.com"></script>
     <style>
         @import url('https://googleapis.com');
         body { font-family: 'Montserrat', sans-serif; background-color: #050505; color: #fff; }
@@ -23,87 +18,45 @@
 </head>
 <body>
     <div id="root"></div>
-
     <script type="text/babel">
-        const { useState, useEffect, useMemo } = React;
-
-        const DADOS_SISTEMA = {
-            nome: "Anderson Ricardo",
-            iniciais: "AR",
-            id: "ar_leads_pro_final"
-        };
-
+        const { useState, useEffect } = React;
         function App() {
             const [leads, setLeads] = useState(() => {
-                const saved = localStorage.getItem(DADOS_SISTEMA.id);
+                const saved = localStorage.getItem("ar_leads_v10");
                 return saved ? JSON.parse(saved) : [];
             });
-
             const [form, setForm] = useState({ nome: "", telefone: "", interesse: "" });
-            const [busca, setBusca] = useState("");
-
-            useEffect(() => {
-                localStorage.setItem(DADOS_SISTEMA.id, JSON.stringify(leads));
-            }, [leads]);
-
-            const leadsFiltrados = leads.filter(l => 
-                l.nome.toLowerCase().includes(busca.toLowerCase()) || 
-                l.interesse.toLowerCase().includes(busca.toLowerCase())
-            );
-
-            const salvarLead = (e) => {
+            useEffect(() => { localStorage.setItem("ar_leads_v10", JSON.stringify(leads)); }, [leads]);
+            const salvar = (e) => {
                 e.preventDefault();
-                if (!form.nome || !form.telefone) return alert("Preencha Nome e Telefone!");
-                setLeads([{ ...form, id: Date.now(), data: new Date().toLocaleDateString() }, ...leads]);
+                if(!form.nome || !form.telefone) return alert("Preencha os campos!");
+                setLeads([{ ...form, id: Date.now() }, ...leads]);
                 setForm({ nome: "", telefone: "", interesse: "" });
             };
-
-            const abrirWhats = (l) => {
-                const num = l.telefone.replace(/\D/g, "");
-                const msg = encodeURIComponent(`Olá ${l.nome}, aqui é ${DADOS_SISTEMA.nome}. Vi seu interesse no imóvel ${l.interesse}. Vamos conversar?`);
-                window.open(`https://wa.me{num}?text=${msg}`, "_blank");
-            };
-
             return (
-                <div className="min-h-screen p-4 max-w-xl mx-auto pb-10">
-                    <header className="flex flex-col items-center py-8 text-center">
-                        <div className="w-20 h-20 border-2 border-[#BF953F] flex items-center justify-center rounded-full mb-3 shadow-lg bg-[#111]">
-                            <span className="text-2xl font-black gold-text italic">{DADOS_SISTEMA.iniciais}</span>
-                        </div>
-                        <h1 className="text-xl font-bold tracking-widest uppercase gold-text italic">{DADOS_SISTEMA.nome}</h1>
-                        <p className="text-[10px] text-gray-500 uppercase tracking-[0.4em] font-bold">Premium Lead Manager</p>
-                    </header>
-
-                    <form onSubmit={salvarLead} className="glass p-6 rounded-3xl mb-10 space-y-4 border border-white/5">
-                        <input type="text" placeholder="Nome do Cliente" value={form.nome} onChange={e => setForm({...form, nome: e.target.value})} className="w-full p-4 bg-white/5 border border-white/10 rounded-xl outline-none text-sm text-white" />
-                        <input type="tel" placeholder="DDD + Número (Só números)" value={form.telefone} onChange={e => setForm({...form, telefone: e.target.value})} className="w-full p-4 bg-white/5 border-l-4 border-[#BF953F] border-white/10 rounded-xl outline-none text-sm font-bold text-white" />
-                        <input type="text" placeholder="Empreendimento / Bairro" value={form.interesse} onChange={e => setForm({...form, interesse: e.target.value})} className="w-full p-4 bg-white/5 border border-white/10 rounded-xl outline-none text-sm text-white" />
-                        <button className="w-full py-5 gold-gradient text-black font-black uppercase text-[11px] rounded-xl tracking-widest shadow-xl active:scale-95 transition-all">Salvar Lead Pro</button>
-                    </form>
-
-                    <div className="mb-8">
-                        <input type="text" placeholder="🔍 Buscar por nome ou imóvel..." value={busca} onChange={e => setBusca(e.target.value)} className="w-full p-4 glass rounded-2xl outline-none text-sm italic text-white" />
+                <div className="min-h-screen p-4 max-w-xl mx-auto flex flex-col items-center">
+                    <div className="w-20 h-20 border-2 border-[#BF953F] flex items-center justify-center rounded-full my-8 shadow-lg bg-[#111]">
+                        <span className="text-2xl font-black gold-text italic">AR</span>
                     </div>
-
-                    <div className="space-y-6">
-                        {leadsFiltrados.map(l => (
-                            <div key={l.id} className="glass rounded-[2rem] overflow-hidden border border-white/5 p-6 shadow-2xl">
-                                <div className="flex justify-between items-start mb-4">
-                                    <div>
-                                        <h4 className="font-bold text-lg text-white leading-tight">{l.nome}</h4>
-                                        <p className="text-[10px] text-[#BF953F] font-black uppercase tracking-widest mt-1 italic">{l.interesse}</p>
-                                    </div>
-                                    <span className="text-[9px] text-gray-800 font-bold">{l.data}</span>
-                                </div>
-                                <button onClick={() => abrirWhats(l)} className="w-full bg-green-600 py-4 rounded-2xl text-[10px] font-black uppercase text-black shadow-lg hover:bg-green-500 transition-all">WhatsApp</button>
-                                <button onClick={() => {if(confirm("Excluir?")) setLeads(leads.filter(x => x.id !== l.id))}} className="w-full mt-4 text-[9px] text-gray-700 uppercase font-bold">Excluir Registro</button>
+                    <h1 className="text-2xl font-bold uppercase gold-text italic mb-10 text-center text-white">Anderson Ricardo</h1>
+                    <form onSubmit={salvar} className="glass p-6 rounded-3xl w-full space-y-4 border border-white/5 shadow-2xl">
+                        <input type="text" placeholder="Nome do Cliente" value={form.nome} onChange={e => setForm({...form, nome: e.target.value})} className="w-full p-4 bg-white/5 border border-white/10 rounded-xl outline-none text-white text-sm" />
+                        <input type="tel" placeholder="Telefone com DDD" value={form.telefone} onChange={e => setForm({...form, telefone: e.target.value})} className="w-full p-4 bg-white/5 border-l-4 border-[#BF953F] border-white/10 rounded-xl outline-none text-white text-sm font-bold" />
+                        <input type="text" placeholder="Interesse / Bairro" value={form.interesse} onChange={e => setForm({...form, interesse: e.target.value})} className="w-full p-4 bg-white/5 border border-white/10 rounded-xl outline-none text-white text-sm" />
+                        <button className="w-full py-5 gold-gradient text-black font-black uppercase text-[11px] rounded-xl tracking-widest active:scale-95 transition-all">Salvar Lead Pro</button>
+                    </form>
+                    <div className="w-full mt-10 space-y-6 text-white">
+                        {leads.map(l => (
+                            <div key={l.id} className="glass p-6 rounded-[2rem] border border-white/5 shadow-2xl">
+                                <h4 className="font-bold text-lg">{l.nome}</h4>
+                                <p className="text-[10px] text-[#BF953F] font-bold uppercase tracking-widest mb-4 italic">{l.interesse}</p>
+                                <button onClick={() => window.open(`https://wa.me{l.telefone.replace(/\D/g, "")}`, "_blank")} className="w-full bg-green-600 py-4 rounded-2xl text-[10px] font-black uppercase text-black">WhatsApp</button>
                             </div>
                         ))}
                     </div>
                 </div>
             );
         }
-
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
     </script>
