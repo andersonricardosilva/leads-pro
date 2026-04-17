@@ -4,11 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AR Leads Premium</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://tailwindcss.com"></script>
     <style>
         body { background-color: #050505; color: #fff; font-family: sans-serif; }
         .gold-gradient { background: linear-gradient(45deg, #BF953F, #FCF6BA, #AA771C); }
         .gold-text { background: linear-gradient(45deg, #BF953F, #FCF6BA, #AA771C); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.05); }
     </style>
 </head>
 <body>
@@ -16,13 +17,57 @@
         <div class="w-20 h-20 border-2 border-[#BF953F] flex items-center justify-center rounded-full my-8 bg-[#111]">
             <span class="text-2xl font-black gold-text italic text-white" style="background:none;-webkit-text-fill-color:white;">AR</span>
         </div>
-        <h1 class="text-2xl font-bold uppercase gold-text italic mb-10 text-center">Anderson Ricardo</h1>
+        <h1 class="text-2xl font-bold uppercase gold-text italic mb-10 text-center text-white">Anderson Ricardo</h1>
         
-        <div class="w-full p-6 rounded-3xl bg-[#0d0d0d] border border-white/5 shadow-2xl text-center">
-            <p class="text-[#BF953F] font-bold mb-4">SISTEMA ATIVO</p>
-            <p class="text-sm text-gray-400 mb-6">O código anterior estava sendo corrompido pelo navegador. Este é um teste de segurança.</p>
-            <button onclick="alert('Sistema funcionando!')" class="w-full py-4 gold-gradient text-black font-black uppercase text-xs rounded-xl">TESTAR BOTÃO</button>
+        <!-- Formulário -->
+        <div class="glass p-6 rounded-3xl w-full space-y-4 border border-white/5 shadow-2xl mb-10">
+            <input type="text" id="nome" placeholder="Nome do Cliente" class="w-full p-4 bg-white/5 border border-white/10 rounded-xl outline-none text-white text-sm">
+            <input type="tel" id="tel" placeholder="DDD + Número" class="w-full p-4 bg-white/5 border-l-4 border-[#BF953F] border-white/10 rounded-xl outline-none text-white text-sm font-bold">
+            <input type="text" id="imovel" placeholder="Empreendimento / Bairro" class="w-full p-4 bg-white/5 border border-white/10 rounded-xl outline-none text-white text-sm">
+            <button onclick="salvarLead()" class="w-full py-5 gold-gradient text-black font-black uppercase text-[11px] rounded-xl tracking-widest shadow-xl">Salvar Lead Pro</button>
         </div>
+
+        <!-- Lista de Leads -->
+        <div id="listaLeads" class="w-full space-y-6"></div>
     </div>
+
+    <script>
+        function renderLeads() {
+            const leads = JSON.parse(localStorage.getItem('ar_leads_final') || '[]');
+            const container = document.getElementById('listaLeads');
+            container.innerHTML = leads.map((l, index) => `
+                <div class="glass p-6 rounded-[2rem] border border-white/5 shadow-xl">
+                    <h4 class="font-bold text-lg text-white">${l.nome}</h4>
+                    <p class="text-[10px] text-[#BF953F] font-bold uppercase tracking-widest mb-4 italic">${l.imovel}</p>
+                    <button onclick="window.open('https://wa.me{l.tel.replace(/\\D/g, "")}', '_blank')" class="w-full bg-green-600 py-4 rounded-2xl text-[10px] font-black uppercase text-black">WhatsApp</button>
+                    <button onclick="excluirLead(${index})" class="w-full mt-4 text-[9px] text-gray-800 font-bold uppercase">Excluir</button>
+                </div>
+            `).join('');
+        }
+
+        function salvarLead() {
+            const nome = document.getElementById('nome').value;
+            const tel = document.getElementById('tel').value;
+            const imovel = document.getElementById('imovel').value;
+            if(!nome || !tel) return alert("Preencha nome e telefone!");
+            const leads = JSON.parse(localStorage.getItem('ar_leads_final') || '[]');
+            leads.unshift({ nome, tel, imovel });
+            localStorage.setItem('ar_leads_final', JSON.stringify(leads));
+            document.getElementById('nome').value = '';
+            document.getElementById('tel').value = '';
+            document.getElementById('imovel').value = '';
+            renderLeads();
+        }
+
+        function excluirLead(index) {
+            if(!confirm("Deseja excluir?")) return;
+            const leads = JSON.parse(localStorage.getItem('ar_leads_final') || '[]');
+            leads.splice(index, 1);
+            localStorage.setItem('ar_leads_final', JSON.stringify(leads));
+            renderLeads();
+        }
+
+        window.onload = renderLeads;
+    </script>
 </body>
 </html>
