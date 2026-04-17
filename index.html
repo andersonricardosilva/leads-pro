@@ -3,71 +3,170 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AR Leads Premium</title>
-    <script src="https://tailwindcss.com"></script>
+    <title>Leads Premium | CRM de Elite</title>
+    <!-- Bibliotecas Externas (Corrigidas) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com"></script>
+    <script src="https://unpkg.com"></script>
+    <script src="https://unpkg.com"></script>
     <style>
-        body { background-color: #050505; color: #fff; font-family: sans-serif; }
+        @import url('https://googleapis.com');
+        body { font-family: 'Montserrat', sans-serif; background-color: #050505; color: #fff; }
         .gold-gradient { background: linear-gradient(45deg, #BF953F, #FCF6BA, #AA771C); }
         .gold-text { background: linear-gradient(45deg, #BF953F, #FCF6BA, #AA771C); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        .lp-logo {
+            width: 80px; height: 80px;
+            clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+            background: linear-gradient(45deg, #BF953F, #AA771C);
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden; cursor: pointer;
+        }
     </style>
 </head>
 <body>
-    <div class="min-h-screen p-4 max-w-xl mx-auto flex flex-col items-center">
-        <div class="w-20 h-20 border-2 border-[#BF953F] flex items-center justify-center rounded-full my-8 bg-[#111]">
-            <span class="text-2xl font-black gold-text italic text-white" style="background:none;-webkit-text-fill-color:white;">AR</span>
-        </div>
-        <h1 class="text-2xl font-bold uppercase gold-text italic mb-10 text-center text-white">Anderson Ricardo</h1>
-        
-        <!-- Formulário -->
-        <div class="glass p-6 rounded-3xl w-full space-y-4 border border-white/5 shadow-2xl mb-10">
-            <input type="text" id="nome" placeholder="Nome do Cliente" class="w-full p-4 bg-white/5 border border-white/10 rounded-xl outline-none text-white text-sm">
-            <input type="tel" id="tel" placeholder="DDD + Número" class="w-full p-4 bg-white/5 border-l-4 border-[#BF953F] border-white/10 rounded-xl outline-none text-white text-sm font-bold">
-            <input type="text" id="imovel" placeholder="Empreendimento / Bairro" class="w-full p-4 bg-white/5 border border-white/10 rounded-xl outline-none text-white text-sm">
-            <button onclick="salvarLead()" class="w-full py-5 gold-gradient text-black font-black uppercase text-[11px] rounded-xl tracking-widest shadow-xl">Salvar Lead Pro</button>
-        </div>
+    <div id="root"></div>
 
-        <!-- Lista de Leads -->
-        <div id="listaLeads" class="w-full space-y-6"></div>
-    </div>
+    <script type="text/babel">
+        const { useState, useEffect, useMemo } = React;
 
-    <script>
-        function renderLeads() {
-            const leads = JSON.parse(localStorage.getItem('ar_leads_final') || '[]');
-            const container = document.getElementById('listaLeads');
-            container.innerHTML = leads.map((l, index) => `
-                <div class="glass p-6 rounded-[2rem] border border-white/5 shadow-xl">
-                    <h4 class="font-bold text-lg text-white">${l.nome}</h4>
-                    <p class="text-[10px] text-[#BF953F] font-bold uppercase tracking-widest mb-4 italic">${l.imovel}</p>
-                    <button onclick="window.open('https://wa.me{l.tel.replace(/\\D/g, "")}', '_blank')" class="w-full bg-green-600 py-4 rounded-2xl text-[10px] font-black uppercase text-black">WhatsApp</button>
-                    <button onclick="excluirLead(${index})" class="w-full mt-4 text-[9px] text-gray-800 font-bold uppercase">Excluir</button>
+        function App() {
+            // Estado do Perfil (Nome e Foto do Corretor)
+            const [perfil, setPerfil] = useState(() => {
+                const saved = localStorage.getItem("perfil_corretor_v10");
+                return saved ? JSON.parse(saved) : { nome: "Anderson Ricardo", iniciais: "AR", foto: null };
+            });
+
+            const [leads, setLeads] = useState(() => {
+                const saved = localStorage.getItem("leads_premium_db_v10");
+                return saved ? JSON.parse(saved) : [];
+            });
+
+            const [form, setForm] = useState({ id: null, nome: "", telefone: "", interesse: "", status: "Quente", fotos: [] });
+            const [busca, setBusca] = useState("");
+            const [editandoPerfil, setEditandoPerfil] = useState(false);
+
+            useEffect(() => { localStorage.setItem("perfil_corretor_v10", JSON.stringify(perfil)); }, [perfil]);
+            useEffect(() => { localStorage.setItem("leads_premium_db_v10", JSON.stringify(leads)); }, [leads]);
+
+            const leadsFiltrados = useMemo(() => {
+                const b = busca.toLowerCase().trim();
+                return leads.filter(l => l.nome.toLowerCase().includes(b) || l.interesse.toLowerCase().includes(b));
+            }, [leads, busca]);
+
+            const handleFile = (e, target) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    if (target === 'perfil') setPerfil(p => ({ ...p, foto: reader.result }));
+                    else setForm(p => ({ ...p, fotos: [...p.fotos, reader.result].slice(0,3) }));
+                };
+                reader.readAsDataURL(file);
+            };
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                if (!form.nome || !form.telefone) return alert("Preencha Nome e Telefone!");
+                if (form.id) {
+                    setLeads(leads.map(l => l.id === form.id ? { ...form, data: new Date().toLocaleDateString() } : l));
+                } else {
+                    setLeads([{ ...form, id: Date.now(), data: new Date().toLocaleDateString() }, ...leads]);
+                }
+                setForm({ id: null, nome: "", telefone: "", interesse: "", status: "Quente", fotos: [] });
+            };
+
+            const abrirWhats = (l) => {
+                const n = l.telefone.replace(/\D/g, "");
+                const m = encodeURIComponent(`Olá! Sou ${perfil.nome}. Queria falar sobre o interesse no ${l.interesse} — excelente oportunidade em Maceió.`);
+                window.open(`https://wa.me{n}?text=${m}`, "_blank");
+            };
+
+            const compartilhar = async (l) => {
+                if (!l.fotos || l.fotos.length === 0) return alert("Sem fotos.");
+                try {
+                    const files = await Promise.all(l.fotos.map(async (u, i) => {
+                        const res = await fetch(u);
+                        const b = await res.blob();
+                        return new File([b], `imovel-${i}.jpg`, { type: b.type });
+                    }));
+                    if (navigator.share) await navigator.share({ files });
+                } catch (e) { alert("Erro ao preparar fotos."); }
+            };
+
+            return (
+                <div className="min-h-screen p-4 max-w-2xl mx-auto pb-10">
+                    <header className="flex flex-col items-center py-10 text-center relative">
+                        <div onClick={() => setEditandoPerfil(!editandoPerfil)} className="lp-logo mb-4 shadow-2xl border-2 border-[#BF953F]">
+                            {perfil.foto ? <img src={perfil.foto} className="w-full h-full object-cover" /> : <span className="text-2xl font-black text-black">{perfil.iniciais}</span>}
+                        </div>
+                        
+                        {editandoPerfil ? (
+                            <div className="glass p-6 rounded-3xl absolute top-36 z-50 w-full shadow-2xl border border-[#BF953F]/30 animate-pulse">
+                                <h3 className="text-[10px] font-black gold-text uppercase mb-4 tracking-widest text-center">Configurações de Perfil</h3>
+                                <input type="text" value={perfil.nome} onChange={e => setPerfil({...perfil, nome: e.target.value, iniciais: e.target.value.substring(0,2).toUpperCase()})} className="w-full p-3 bg-black border border-white/10 rounded-xl mb-4 outline-none text-white text-sm" placeholder="Seu Nome Profissional" />
+                                <label className="block p-3 gold-gradient text-black text-[10px] font-black rounded-xl cursor-pointer uppercase text-center mb-4">Escolher Minha Foto <input type="file" onChange={e => handleFile(e, 'perfil')} className="hidden" /></label>
+                                <button onClick={() => setEditandoPerfil(false)} className="w-full py-2 text-[10px] font-bold text-gray-500 uppercase">Fechar e Salvar</button>
+                            </div>
+                        ) : (
+                            <>
+                                <h1 className="text-2xl font-black tracking-[0.2em] gold-text uppercase leading-tight">{perfil.nome}</h1>
+                                <p className="text-[9px] text-gray-600 uppercase tracking-[0.4em] mt-2 font-bold italic">Leads Premium Manager</p>
+                            </>
+                        )}
+                    </header>
+
+                    <form onSubmit={handleSubmit} className="glass p-6 rounded-[2.5rem] mb-12 space-y-4 border border-white/5">
+                        <input type="text" placeholder="NOME DO CLIENTE" value={form.nome} onChange={e => setForm({...form, nome: e.target.value})} className="w-full p-4 bg-white/5 border border-white/10 rounded-2xl outline-none text-white text-sm" />
+                        <div className="flex gap-2">
+                            <input type="tel" placeholder="DDD + NÚMERO" value={form.telefone} onChange={e => setForm({...form, telefone: e.target.value})} className="flex-1 p-4 bg-white/5 border-l-4 border-[#BF953F] border-white/10 rounded-2xl outline-none text-sm font-bold text-white uppercase" />
+                            <select value={form.status} onChange={e => setForm({...form, status: e.target.value})} className="p-3 bg-black border border-white/10 rounded-2xl text-[10px] font-black text-[#BF953F]">
+                                <option>Quente</option><option>Morno</option><option>Frio</option>
+                            </select>
+                        </div>
+                        <input type="text" placeholder="EMPREENDIMENTO / BAIRRO" value={form.interesse} onChange={e => setForm({...form, interesse: e.target.value})} className="w-full p-4 bg-white/5 border border-white/10 rounded-2xl outline-none text-white text-sm" />
+                        <label className="block text-center p-3 rounded-2xl border-2 border-dashed border-[#BF953F]/30 text-[#BF953F] text-[10px] font-black uppercase cursor-pointer italic">📸 Anexar Fotos do Imóvel <input type="file" multiple onChange={e => handleFile(e, 'imovel')} className="hidden" /></label>
+                        <button className="w-full py-5 gold-gradient text-black font-black uppercase text-[11px] rounded-2xl tracking-[0.2em] active:scale-95 transition-all shadow-xl shadow-yellow-900/10">{form.id ? "Atualizar Lead" : "Salvar Lead Premium"}</button>
+                    </form>
+
+                    <div className="mb-10 px-1">
+                        <input type="text" placeholder="🔍 Buscar por nome ou empreendimento..." value={busca} onChange={e => setBusca(e.target.value)} className="w-full p-4 glass rounded-2xl outline-none border border-white/5 text-sm italic text-gray-300" />
+                    </div>
+
+                    <div className="space-y-8">
+                        {leadsFiltrados.map(l => (
+                            <div key={l.id} className="glass rounded-[2.5rem] overflow-hidden border border-white/5 shadow-2xl transition-all">
+                                {l.fotos?.length > 0 && (
+                                    <div className="flex h-44 gap-0.5 border-b border-white/5 bg-black">
+                                        {l.fotos.map((img, i) => <img key={i} src={img} className="flex-1 object-cover opacity-80" />)}
+                                    </div>
+                                )}
+                                <div className="p-7">
+                                    <div className="flex justify-between items-start mb-6">
+                                        <div>
+                                            <h4 className="font-bold text-lg text-white leading-tight">{l.nome}</h4>
+                                            <p className="text-[10px] text-[#BF953F] font-black uppercase tracking-widest mt-1 italic">{l.interesse}</p>
+                                        </div>
+                                        <div className={`px-2 py-1 rounded-full text-[8px] font-black border ${l.status === 'Quente' ? 'border-orange-500 text-orange-500' : 'border-gray-700 text-gray-500'}`}>{l.status}</div>
+                                    </div>
+                                    <div className="flex flex-col gap-3">
+                                        <button onClick={() => compartilhar(l)} className="w-full bg-white/5 py-4 rounded-2xl text-[10px] font-bold uppercase border border-white/10 italic">📸 Enviar Fotos</button>
+                                        <button onClick={() => abrirWhats(l)} className="w-full bg-green-600 py-4 rounded-2xl text-[10px] font-black uppercase text-black shadow-lg">💬 Enviar Mensagem</button>
+                                    </div>
+                                    <div className="flex justify-between items-center mt-8 pt-4 border-t border-white/5">
+                                        <button onClick={() => prepararEdicao(l)} className="text-[9px] text-blue-400 font-bold uppercase tracking-tighter">Editar Cadastro</button>
+                                        <button onClick={() => confirm("Excluir?") && setLeads(leads.filter(x => x.id !== l.id))} className="text-[9px] text-red-950 font-black uppercase">Excluir</button>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 </div>
-            `).join('');
+            );
         }
 
-        function salvarLead() {
-            const nome = document.getElementById('nome').value;
-            const tel = document.getElementById('tel').value;
-            const imovel = document.getElementById('imovel').value;
-            if(!nome || !tel) return alert("Preencha nome e telefone!");
-            const leads = JSON.parse(localStorage.getItem('ar_leads_final') || '[]');
-            leads.unshift({ nome, tel, imovel });
-            localStorage.setItem('ar_leads_final', JSON.stringify(leads));
-            document.getElementById('nome').value = '';
-            document.getElementById('tel').value = '';
-            document.getElementById('imovel').value = '';
-            renderLeads();
-        }
-
-        function excluirLead(index) {
-            if(!confirm("Deseja excluir?")) return;
-            const leads = JSON.parse(localStorage.getItem('ar_leads_final') || '[]');
-            leads.splice(index, 1);
-            localStorage.setItem('ar_leads_final', JSON.stringify(leads));
-            renderLeads();
-        }
-
-        window.onload = renderLeads;
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
     </script>
 </body>
 </html>
