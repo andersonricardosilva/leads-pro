@@ -3,12 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Leads Premium | AR Anderson Ricardo</title>
-    <!-- Bibliotecas Corrigidas -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>AR Leads Premium | Anderson Ricardo</title>
+    
+    <!-- Importação do Tailwind CSS para o design -->
+    <script src="https://tailwindcss.com"></script>
+    
+    <!-- Importação das bibliotecas do React e Babel (Cérebro do App) -->
     <script src="https://unpkg.com"></script>
     <script src="https://unpkg.com"></script>
     <script src="https://unpkg.com"></script>
+    
     <style>
         @import url('https://googleapis.com');
         body { font-family: 'Montserrat', sans-serif; background-color: #050505; color: #fff; }
@@ -19,77 +23,87 @@
 </head>
 <body>
     <div id="root"></div>
+
     <script type="text/babel">
         const { useState, useEffect, useMemo } = React;
-        const DADOS_CLIENTE = { iniciais: "AR", nomeCompleto: "Anderson Ricardo", idSistema: "ar_pro_leads_github_v1", cidadeReferencia: "Maceió" };
+
+        const DADOS_SISTEMA = {
+            nome: "Anderson Ricardo",
+            iniciais: "AR",
+            id: "ar_leads_pro_final"
+        };
 
         function App() {
-            const [perfil, setPerfil] = useState(() => {
-                const saved = localStorage.getItem("perfil_github_ar");
-                return saved ? JSON.parse(saved) : { nome: DADOS_CLIENTE.nomeCompleto, iniciais: DADOS_CLIENTE.iniciais, foto: null };
-            });
             const [leads, setLeads] = useState(() => {
-                const saved = localStorage.getItem(DADOS_CLIENTE.idSistema);
+                const saved = localStorage.getItem(DADOS_SISTEMA.id);
                 return saved ? JSON.parse(saved) : [];
             });
-            const [form, setForm] = useState({ nome: "", telefone: "", interesse: "", categoria: "Investidor", fotos: [] });
+
+            const [form, setForm] = useState({ nome: "", telefone: "", interesse: "" });
             const [busca, setBusca] = useState("");
-            const [editando, setEditando] = useState(false);
 
-            useEffect(() => { localStorage.setItem("perfil_github_ar", JSON.stringify(perfil)); }, [perfil]);
-            useEffect(() => { localStorage.setItem(DADOS_CLIENTE.idSistema, JSON.stringify(leads)); }, [leads]);
+            useEffect(() => {
+                localStorage.setItem(DADOS_SISTEMA.id, JSON.stringify(leads));
+            }, [leads]);
 
-            const enviarZap = (l) => {
+            const leadsFiltrados = leads.filter(l => 
+                l.nome.toLowerCase().includes(busca.toLowerCase()) || 
+                l.interesse.toLowerCase().includes(busca.toLowerCase())
+            );
+
+            const salvarLead = (e) => {
+                e.preventDefault();
+                if (!form.nome || !form.telefone) return alert("Preencha Nome e Telefone!");
+                setLeads([{ ...form, id: Date.now(), data: new Date().toLocaleDateString() }, ...leads]);
+                setForm({ nome: "", telefone: "", interesse: "" });
+            };
+
+            const abrirWhats = (l) => {
                 const num = l.telefone.replace(/\D/g, "");
-                const msg = encodeURIComponent(`Olá ${l.nome}, aqui é ${perfil.nome}. Vi seu interesse no ${l.interest || l.interesse}. Vamos conversar?`);
+                const msg = encodeURIComponent(`Olá ${l.nome}, aqui é ${DADOS_SISTEMA.nome}. Vi seu interesse no imóvel ${l.interesse}. Vamos conversar?`);
                 window.open(`https://wa.me{num}?text=${msg}`, "_blank");
             };
 
-            const leadsFiltrados = leads.filter(l => 
-                (l.nome && l.nome.toLowerCase().includes(busca.toLowerCase())) || 
-                (l.interesse && l.interesse.toLowerCase().includes(busca.toLowerCase()))
-            );
-
             return (
                 <div className="min-h-screen p-4 max-w-xl mx-auto pb-10">
-                    <header className="flex flex-col items-center py-8 text-center relative text-white">
-                        <div onClick={() => setEditando(!editando)} className="w-20 h-20 border-2 border-[#BF953F] flex items-center justify-center rounded-full mb-3 overflow-hidden cursor-pointer bg-[#111]">
-                            {perfil.foto ? <img src={perfil.foto} className="w-full h-full object-cover" /> : <span className="text-2xl font-black gold-text italic">{perfil.iniciais}</span>}
+                    <header className="flex flex-col items-center py-8 text-center">
+                        <div className="w-20 h-20 border-2 border-[#BF953F] flex items-center justify-center rounded-full mb-3 shadow-lg bg-[#111]">
+                            <span className="text-2xl font-black gold-text italic">{DADOS_SISTEMA.iniciais}</span>
                         </div>
-                        {editando ? (
-                            <div className="glass p-6 rounded-3xl absolute top-36 z-50 w-full shadow-2xl border border-[#BF953F]/30 text-white">
-                                <input type="text" value={perfil.nome} onChange={(e) => setPerfil({...perfil, nome: e.target.value, iniciais: e.target.value.substring(0,2).toUpperCase()})} className="w-full p-3 bg-black border border-white/10 rounded-xl mb-4 outline-none text-sm text-white" />
-                                <button onClick={() => setEditando(false)} className="w-full py-2 text-[10px] font-bold text-gray-500 uppercase">Salvar</button>
-                            </div>
-                        ) : (
-                            <h1 className="text-xl font-bold tracking-widest uppercase text-white italic">{perfil.nome}</h1>
-                        )}
+                        <h1 className="text-xl font-bold tracking-widest uppercase gold-text italic">{DADOS_SISTEMA.nome}</h1>
+                        <p className="text-[10px] text-gray-500 uppercase tracking-[0.4em] font-bold">Premium Lead Manager</p>
                     </header>
 
-                    <form onSubmit={(e) => { e.preventDefault(); setLeads([{...form, id: Date.now(), data: new Date().toLocaleDateString()}, ...leads]); setForm({nome:"", telefone:"", interesse:"", categoria:"Investidor", fotos:[]}) }} className="glass p-5 rounded-3xl mb-10 space-y-4 border border-white/5">
+                    <form onSubmit={salvarLead} className="glass p-6 rounded-3xl mb-10 space-y-4 border border-white/5">
                         <input type="text" placeholder="Nome do Cliente" value={form.nome} onChange={e => setForm({...form, nome: e.target.value})} className="w-full p-4 bg-white/5 border border-white/10 rounded-xl outline-none text-sm text-white" />
-                        <input type="tel" placeholder="DDD + Número" value={form.telefone} onChange={e => setForm({...form, telefone: e.target.value})} className="w-full p-4 bg-white/5 border-l-4 border-[#BF953F] border-white/10 rounded-xl outline-none text-sm font-bold text-white" />
-                        <input type="text" placeholder="Interesse / Bairro" value={form.interesse} onChange={e => setForm({...form, interesse: e.target.value})} className="w-full p-4 bg-white/5 border border-white/10 rounded-xl outline-none text-sm text-white" />
-                        <button className="w-full py-5 gold-gradient text-black font-black uppercase text-[10px] rounded-xl tracking-widest">Salvar Lead Pro</button>
+                        <input type="tel" placeholder="DDD + Número (Só números)" value={form.telefone} onChange={e => setForm({...form, telefone: e.target.value})} className="w-full p-4 bg-white/5 border-l-4 border-[#BF953F] border-white/10 rounded-xl outline-none text-sm font-bold text-white" />
+                        <input type="text" placeholder="Empreendimento / Bairro" value={form.interesse} onChange={e => setForm({...form, interesse: e.target.value})} className="w-full p-4 bg-white/5 border border-white/10 rounded-xl outline-none text-sm text-white" />
+                        <button className="w-full py-5 gold-gradient text-black font-black uppercase text-[11px] rounded-xl tracking-widest shadow-xl active:scale-95 transition-all">Salvar Lead Pro</button>
                     </form>
 
                     <div className="mb-8">
-                        <input type="text" placeholder="🔍 Buscar cliente..." value={busca} onChange={e => setBusca(e.target.value)} className="w-full p-4 glass rounded-2xl outline-none text-sm italic text-white" />
+                        <input type="text" placeholder="🔍 Buscar por nome ou imóvel..." value={busca} onChange={e => setBusca(e.target.value)} className="w-full p-4 glass rounded-2xl outline-none text-sm italic text-white" />
                     </div>
 
                     <div className="space-y-6">
                         {leadsFiltrados.map(l => (
                             <div key={l.id} className="glass rounded-[2rem] overflow-hidden border border-white/5 p-6 shadow-2xl">
-                                <h4 className="font-bold text-lg text-white">{l.nome}</h4>
-                                <p className="text-[10px] text-[#BF953F] font-black uppercase mb-4 tracking-widest">{l.interesse}</p>
-                                <button onClick={() => enviarZap(l)} className="w-full bg-green-600 py-4 rounded-2xl text-[10px] font-black uppercase text-black">WhatsApp</button>
-                                <button onClick={() => {if(confirm("Excluir?")) setLeads(leads.filter(x => x.id !== l.id))}} className="w-full mt-4 text-[9px] text-gray-800 uppercase font-bold text-center">Excluir</button>
+                                <div className="flex justify-between items-start mb-4">
+                                    <div>
+                                        <h4 className="font-bold text-lg text-white leading-tight">{l.nome}</h4>
+                                        <p className="text-[10px] text-[#BF953F] font-black uppercase tracking-widest mt-1 italic">{l.interesse}</p>
+                                    </div>
+                                    <span className="text-[9px] text-gray-800 font-bold">{l.data}</span>
+                                </div>
+                                <button onClick={() => abrirWhats(l)} className="w-full bg-green-600 py-4 rounded-2xl text-[10px] font-black uppercase text-black shadow-lg hover:bg-green-500 transition-all">WhatsApp</button>
+                                <button onClick={() => {if(confirm("Excluir?")) setLeads(leads.filter(x => x.id !== l.id))}} className="w-full mt-4 text-[9px] text-gray-700 uppercase font-bold">Excluir Registro</button>
                             </div>
                         ))}
                     </div>
                 </div>
             );
         }
+
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
     </script>
